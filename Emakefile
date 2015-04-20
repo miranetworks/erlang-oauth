@@ -1,1 +1,8 @@
-{"src/*", [debug_info, warn_unused_vars, warn_unused_import, {outdir, "ebin"}]}.
+{"src/*", [
+        debug_info
+    ,   warnings_as_errors
+    ,   warn_unused_vars
+    ,   warn_unused_import
+
+    ,   {outdir, "ebin"}
+]}.
