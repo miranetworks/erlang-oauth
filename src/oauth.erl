@@ -221,7 +221,9 @@ header_params_decode(String) ->
   [header_param_decode(Param) || Param <- re:split(String, ",\\s*", [{return, list}]), Param =/= ""].
 
 header_param_decode(Param) ->
-  [Key, QuotedValue] = string:tokens(Param, "="),
+  % Base64 encoded values can be padded with '='s.
+  % Using a regex to split on the first '=' is better than string:tokens/2.
+  [Key, QuotedValue] = re:split(Param, "\\s*=\\s*", [{return,list}, {parts,2}]),
   Value = string:substr(QuotedValue, 2, length(QuotedValue) - 2),
   {uri_decode(Key), uri_decode(Value)}.
 
