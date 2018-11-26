@@ -5,7 +5,7 @@
 
 -export([plaintext_signature/2, hmac_sha1_signature/5,
   hmac_sha1_signature/3, rsa_sha1_signature/4, rsa_sha1_signature/2,
-  signature_base_string/3, params_encode/1]).
+  signature_base_string/3, params_encode/1, signature/5]).
 
 -export([plaintext_verify/3, hmac_sha1_verify/6, hmac_sha1_verify/4,
   rsa_sha1_verify/5, rsa_sha1_verify/3]).
@@ -77,7 +77,7 @@ signature_params(Consumer, Params, Token) ->
 
 signature_params(Consumer, Params) ->
   Timestamp = unix_timestamp(),
-  Nonce = base64:encode_to_string(crypto:rand_bytes(32)), % cf. ruby-oauth
+  Nonce = base64:encode_to_string(crypto:strong_rand_bytes(32)), % cf. ruby-oauth
   [ {"oauth_version", "1.0"}
   , {"oauth_nonce", Nonce}
   , {"oauth_timestamp", integer_to_list(Timestamp)}
@@ -128,7 +128,7 @@ hmac_sha1_signature(HttpMethod, URL, Params, Consumer, TokenSecret) ->
 
 hmac_sha1_signature(BaseString, Consumer, TokenSecret) ->
   Key = uri_join([consumer_secret(Consumer), TokenSecret]),
-  base64:encode_to_string(hmac_sha(Key, BaseString)).
+  base64:encode_to_string(crypto:hmac(sha, Key, BaseString)).
 
 hmac_sha1_verify(Signature, HttpMethod, URL, Params, Consumer, TokenSecret) ->
   verify_in_constant_time(Signature, hmac_sha1_signature(HttpMethod, URL, Params, Consumer, TokenSecret)).
@@ -136,9 +136,9 @@ hmac_sha1_verify(Signature, HttpMethod, URL, Params, Consumer, TokenSecret) ->
 hmac_sha1_verify(Signature, BaseString, Consumer, TokenSecret) ->
   verify_in_constant_time(Signature, hmac_sha1_signature(BaseString, Consumer, TokenSecret)).
 
-hmac_sha(Key, Data) ->
-  %crypto:sha_mac(Key, Data)
-  crypto:hmac(sha, Key, Data).
+% hmac_sha(Key, Data) ->
+%   %crypto:sha_mac(Key, Data)
+%   crypto:hmac(sha, Key, Data).
 
 rsa_sha1_signature(HttpMethod, URL, Params, Consumer) ->
   BaseString = signature_base_string(HttpMethod, URL, Params),
